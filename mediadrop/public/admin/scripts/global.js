@@ -85,3 +85,28 @@ Class.refactor(Hash, {
 	}
 
 });
+
+//Florin's additions
+Array.prototype.fl_unique = function()
+{
+	function onlyUnique(value, index, self) {
+		return self.indexOf(value) === index;
+	}
+	return this.filter(onlyUnique);
+}
+
+Array.prototype.fl_removeEmpty = function() {
+	return this.filter(function(s) {
+		return s && s.length && s.length > 0;
+	});
+}
+
+Array.prototype.fl_trimStrings = function()
+{
+	return this.map(function(s) {
+		if (typeof(s) == 'string') {
+			return s.replace(/^\s+|\s+$/, '');
+		}
+		return s; 
+	});
+}

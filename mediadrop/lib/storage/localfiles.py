@@ -116,4 +116,41 @@ class LocalFileStorage(FileStorageEngine):
             basepath = config['media_dir']
         return os.path.join(basepath, unique_id)
 
+    def get_id3_tags(self, unique_id):
+        file_path = self._get_path(unique_id)
+        return get_id3_tags(file_path) 
+
+    def get_id3_user_tags(self, unique_id):
+        file_path = self._get_path(unique_id)
+        return get_id3_user_tags(file_path)
+
 FileStorageEngine.register(LocalFileStorage)
+
+
+def get_id3_tags(file_path):
+    """Returns the id3 tags of the file"""
+    print("ID3 for ", file_path)
+    from mutagen import MutagenError
+    from mutagen.easyid3 import EasyID3
+    id3tag = None
+    try:
+        id3tag = EasyID3(file_path)
+    except MutagenError:
+        print("Could not ID3 file ", file_path)
+    return id3tag
+
+def get_id3_user_tags(file_path):
+    """Extract tags from the TIT1 (grouping) id3 tag """
+    from mutagen import MutagenError
+    from mutagen.id3 import ID3
+    try:
+        tag = ID3(file_path)
+        tit1 = tag["TIT1"]
+        tags = tit1.text[0].split(",")
+        tags = map(unicode.strip, tags) 
+        return tags
+    except MutagenError:
+        print("Could not ID3 for file ", file_path)
+    except (KeyError, AttributeError) as e:
+        print("Error reading tags: ", e)
+    return None

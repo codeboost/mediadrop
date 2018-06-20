@@ -23,6 +23,9 @@ from mediadrop.lib.xhtml import clean_xhtml
 from mediadrop.plugin.abc import (AbstractClass, abstractmethod,
     abstractproperty)
 
+from mediadrop.model.tags import extract_tags
+
+
 __all__ = ['add_new_media_file', 'sort_engines', 'CannotTranscode', 
     'FileStorageEngine', 'StorageError', 'StorageEngine', 
     'UnsuitableEngineError', 'UserStorageError',
@@ -256,7 +259,7 @@ class FileStorageEngine(StorageEngine):
         """
         if file is None:
             raise UnsuitableEngineError
-
+        print("File is: ", file)
         filename = os.path.basename(file.filename)
         name, ext = os.path.splitext(filename)
         ext = ext.lstrip('.').lower()
@@ -268,7 +271,7 @@ class FileStorageEngine(StorageEngine):
             'display_name': u'%s.%s' % (name, container or ext),
             'size': get_file_size(file.file),
         }
-
+        
 class EmbedStorageEngine(StorageEngine):
     """
     A specialized URL storage engine for URLs that match a certain pattern.
@@ -351,6 +354,7 @@ def add_new_media_file(media, file=None, url=None):
     else:
         raise StorageError(_('Unusable file or URL provided.'), None, None)
 
+
     from mediadrop.model import DBSession, MediaFile
     mf = MediaFile()
     mf.storage = engine
@@ -365,6 +369,8 @@ def add_new_media_file(media, file=None, url=None):
     mf.bitrate = meta.get('bitrate', None)
     mf.width = meta.get('width', None)
     mf.height = meta.get('height', None)
+    mf.tags = "one, two, three"
+
 
     media.files.append(mf)
     DBSession.flush()
@@ -376,6 +382,16 @@ def add_new_media_file(media, file=None, url=None):
     elif not mf.unique_id:
         raise StorageError('Engine %r returned no unique ID.', engine)
 
+    #Read id3 tag and extract the details from there
+    from mediadrop.lib.storage import LocalFileStorage
+    if (isinstance(engine, LocalFileStorage)):
+        mf.id3tags = engine.get_id3_tags(unique_id)
+        mf.extracted_tags = engine.get_id3_user_tags(unique_id)
+        print("ID3 tags: ", mf.id3tags)
+        if (mf.id3tags != None):
+            mf.display_name = mf.id3tags['title'][0]
+    
+    
     if not media.duration and meta.get('duration', 0):
         media.duration = meta['duration']
     if not media.description and meta.get('description'):
@@ -519,4 +535,9 @@ def safe_file_name(media_file, hint=None):
     else:
         ext = u''
     return u'%d%s%s' % (media_file.id, hint, ext)
+
+
+
+
+
 

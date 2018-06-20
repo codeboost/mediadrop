@@ -17,4 +17,9 @@ closure-library
 mediadrop/public/scripts/goog
 wiki
 build
+plam.ini
+.DS_Store
+._.DS_Store
+.eggs/
+.vscode/
 .metadata

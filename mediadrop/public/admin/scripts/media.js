@@ -81,6 +81,7 @@ var MediaManager = new Class({
 			this.setStubData(json.title, json.slug, json.link, json.description);
 			this.updateStatusForm(json.status_form);
 		}
+		this.updateTags(json.extracted_tags)
 		this.thumbUploader.refreshThumb();
 	},
 
@@ -114,6 +115,17 @@ var MediaManager = new Class({
 		}
 		if (desc) $(this.metaForm.form.description).set('fieldValue', desc);
 		this.updateTitle(title, link);
+	},
+
+	updateTags: function(media_tags) {
+		if (!media_tags || !media_tags.length) { return; }
+		var tagField = $(this.metaForm.form.tags);
+		var tags = tagField.get('fieldValue') || '';
+		tags = tags.split(',').fl_trimStrings();
+		Array.prototype.push.apply(tags, media_tags.fl_trimStrings());
+		tags = tags.fl_unique().fl_removeEmpty();
+		tags = tags.join(', ')
+		$(this.metaForm.form.tags).set('fieldValue', tags);
 	},
 
 	updateTitle: function(title, link){

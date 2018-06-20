@@ -338,6 +338,8 @@ class MediaController(BaseController):
             description = media.description,
             link = url_for(action='edit', id=media.id),
             duration = helpers.duration_from_seconds(media.duration),
+            extracted_tags = media_file.extracted_tags
+
         )
 
         return data
